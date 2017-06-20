@@ -103,7 +103,6 @@
 				deleteButton.onclick = function(){
 					deleteTask(this.parentElement);};
 				
-				
 					deleteButton.innerHTML = 'Delete'
 					node.appendChild(deleteButton);
 

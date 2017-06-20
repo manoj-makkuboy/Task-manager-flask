@@ -1,8 +1,6 @@
 import os
-import sys
 import sqlite3
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, Response
-import logging
+from flask import Flask, request,  g, redirect, url_for,   flash, Response
 import json
 
 
@@ -58,7 +56,6 @@ def show_entries():
     json_array = []
     for entry in entries:
         json_array.append([x for x in entry])
-    print(Response, file=sys.stderr)
     return Response(json.dumps(json_array), mimetype='json/application')
 
 @app.route('/add', methods = ['POST'])
@@ -78,12 +75,9 @@ def update_status():
 
     is_done = recievedJSON[1]
     task_id = recievedJSON[0]
-    if is_done == 0:
-        is_done = 1
-    else:
-        is_done = 0
 
-    new_value = is_done
+    is_done = 1 - is_done
+
     db.execute('update entries set is_done = ? where task_id=?',[is_done, task_id])
 
     db.commit()
