@@ -9,7 +9,7 @@
 	var addItem = function(){	
 		var itemToAdd = document.getElementById('newItem').value
 
-		var xmlhttp = XHR("http:localhost:5000/add", "POST", [itemToAdd, 0]);
+		var xmlhttp = XHR("/add", "POST", [itemToAdd, 0]);
 
 		node = document.createElement("LI");       // adding a copy to the html document
 		textNode = document.createTextNode(itemToAdd)
@@ -27,7 +27,7 @@
 	var deleteTask = function(listItem){
 		var payLoad = listItem.id;
 		
-		var xmlhttp = XHR("http:localhost:5000/delete", "POST", payLoad);
+		var xmlhttp = XHR("/delete", "POST", payLoad);
 
 		xmlhttp.onreadystatechange = function() {
 			if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
@@ -35,6 +35,20 @@
 			}
 		}
 	}
+
+
+	var assignTask = function(listItem, assignee){
+		var payLoad = [listItem.id, assignee];
+		
+		var xmlhttp = XHR("/assign", "POST", payLoad);
+
+		xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
+				buildList(JSON.parse(xmlhttp.responseText));
+			}
+		}
+	}
+
 
 	var doUnDo = function(listItem){
 		var taskID = listItem.id
@@ -45,7 +59,7 @@
 		
 		console.log(taskID,taskDone)
 		var payLoad = [taskID, taskDone];	
-		var xmlhttp = XHR("http:localhost:5000/done", "POST", payLoad);
+		var xmlhttp = XHR("/done", "POST", payLoad);
 
 		xmlhttp.onreadystatechange = function () {
 			 if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
@@ -56,7 +70,7 @@
 
 	var syncItem = function(){	
 		
-		xmlhttp = XHR("http:localhost:5000/sync", "GET", null);
+		xmlhttp = XHR("/sync", "GET", null);
 
 	        xmlhttp.onreadystatechange = function () {
 
@@ -69,7 +83,6 @@
 		}
 		
 	buildList = function(JSONResponse){
-		console.log(JSONResponse,"hey this is buildList")	
 
 		item_list = document.getElementById("toDoList");		
 			while(item_list.firstChild){
@@ -105,6 +118,18 @@
 				
 					deleteButton.innerHTML = 'Delete'
 					node.appendChild(deleteButton);
+
+						// build textBox
+				var assigneeTextBox = document.createElement('input');
+				assigneeTextBox.type = "text";
+				node.appendChild(assigneeTextBox);
+
+				var assignButton = document.createElement('Button'); 
+				assignButton.onclick = function(){
+					assignTask(this.parentElement, this.previousSibling.value);};
+						
+					assignButton.innerHTML = 'Assign'
+					node.appendChild(assignButton);
 
 			}
 	}
