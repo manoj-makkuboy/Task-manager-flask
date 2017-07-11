@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from flask import Flask, request,  g, redirect, url_for,   flash, Response
-from flask import current_app
+from flask import current_app, session
 import json
 
 app = Flask(__name__)
@@ -115,6 +115,33 @@ def assign_task():
     return show_entries()
 
 
-@app.route('/')
+@app.route('/task')
 def to_do():
     return current_app.send_static_file('using_js.html')
+
+
+@app.route('/')
+def index():
+    if 'username' in session:
+        return 'Logged in as %s' % session['username']
+    return 'You are not logged in'
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        session['username'] = request.form['username']
+        return redirect(url_for('index'))
+    return ''' <form method="post">
+            <p><input type=text name=username>
+            <p><input type=submit value=Login>
+        </form>
+    '''
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+app.secret_key = 'my secret key'
