@@ -55,7 +55,7 @@ def initdb_command():
 @app.route('/sync', methods=['GET'])
 def show_entries():
     db = get_db()
-    cur = db.execute('select task_id, task_name, is_done from task where task_creator = ? order by task_id asc',[session['username']])
+    cur = db.execute('select task_id, task_name, is_done, task_creator from task where task_creator = ? order by task_id asc',[session['username']])
     entries = cur.fetchall()
     json_array = []
     for entry in entries:
@@ -126,6 +126,7 @@ def index():
         return 'Logged in as %s' % session['username']
     return 'You are not logged in'
 
+
 def check_credentials(username, password):
     db = get_db()
     cur = db.execute('select 1 from user where user_name = ? and user_password = ?', [username, password])
@@ -141,7 +142,7 @@ def login():
 
         if check_credentials(request.form['username'], request.form['password']):
             session['username'] = request.form['username']
-            return redirect(url_for('index'))
+            return redirect(url_for('to_do'))
 
         return 'Invalid Credentials or Username doesn\' exits'
 
