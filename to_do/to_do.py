@@ -55,7 +55,7 @@ def initdb_command():
 @app.route('/sync', methods=['GET'])
 def show_entries():
     db = get_db()
-    cur = db.execute('select task_id,item_content, is_done from entries order by task_id asc')
+    cur = db.execute('select task_id, task_name, is_done from task where task_creator = ? order by task_id asc',[session['username']])
     entries = cur.fetchall()
     json_array = []
     for entry in entries:
@@ -67,7 +67,7 @@ def show_entries():
 def add_entry():
     recievedJSON = request.json
     db = get_db()
-    db.execute('insert into entries (item_content, is_done) values (?, ?)', [recievedJSON[0], recievedJSON[1]])
+    db.execute('insert into task (task_name, is_done, task_creator) values (?, ?, ?)', [recievedJSON[0], recievedJSON[1], session['username']])
     db.commit()
     flash('New entry was successfully posted')
     return redirect(url_for('show_entries'))
@@ -83,7 +83,7 @@ def update_status():
 
     is_done = 1 - is_done
 
-    db.execute('update entries set is_done = ? where task_id=?', [is_done, task_id])
+    db.execute('update task set is_done = ? where task_id=?', [is_done, task_id])
 
     db.commit()
     flash('update successful')
@@ -94,7 +94,7 @@ def update_status():
 def delete_task():
     task_id = request.json
     db = get_db()
-    db.execute('delete from entries where task_id = ?', [task_id])
+    db.execute('delete from task where task_id = ?', [task_id])
     db.commit()
     return show_entries()
 
