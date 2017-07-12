@@ -126,14 +126,29 @@ def index():
         return 'Logged in as %s' % session['username']
     return 'You are not logged in'
 
+def check_credentials(username, password):
+    db = get_db()
+    cur = db.execute('select 1 from user where user_name = ? and user_password = ?', [username, password])
+
+    if cur.fetchone():
+        return True
+    return False
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        session['username'] = request.form['username']
-        return redirect(url_for('index'))
+
+        if check_credentials(request.form['username'], request.form['password']):
+            session['username'] = request.form['username']
+            return redirect(url_for('index'))
+
+        return 'Invalid Credentials or Username doesn\' exits'
+
+
     return ''' <form method="post">
             <p><input type=text name=username>
+            <p><input type=password name=password>
             <p><input type=submit value=Login>
         </form>
     '''
