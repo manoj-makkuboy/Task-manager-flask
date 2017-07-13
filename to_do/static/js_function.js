@@ -83,13 +83,14 @@
 		}
 		
 	buildList = function(JSONResponse){
+		document.getElementById("main_heading").innerHTML = 'ToDo created by : ' +  JSONResponse[JSONResponse.length - 1]
 
 		item_list = document.getElementById("toDoList");		
 			while(item_list.firstChild){
 				item_list.removeChild(item_list.firstChild)	
 			}
 
-			for (var x = 0; x < JSONResponse.length; x++){
+			for (var x = 0; x < JSONResponse.length - 1; x++){
 				var node = document.createElement("LI");
 				node.id = ( JSONResponse[x][0] ) 
 

@@ -55,11 +55,12 @@ def initdb_command():
 @app.route('/sync', methods=['GET'])
 def show_entries():
     db = get_db()
-    cur = db.execute('select task_id, task_name, is_done, task_creator from task where task_creator = ? order by task_id asc',[session['username']])
+    cur = db.execute('select task_id, task_name, is_done from task where task_creator = ? order by task_id asc',[session['username']])
     entries = cur.fetchall()
     json_array = []
     for entry in entries:
         json_array.append([x for x in entry])
+    json_array.append(session['username'])
     return Response(json.dumps(json_array), mimetype='json/application')
 
 
@@ -103,15 +104,11 @@ def delete_task():
 def assign_task():
     task_id = request.json[0]
     assignee = request.json[1]
-    assignee_id = 0
+    assignee_id = get_user_id(assignee)
     db = get_db()
-    cur = db.execute('select user_id from user where user_name = ?', [assignee])
-    entries = cur.fetchall()
-    for entry in entries:
-        for data in entry:
-            assignee_id = data
-    db.execute('insert into assignment values (NULL, ?, ?, ?)', [task_id, 1, assignee_id])
-    db.commit()
+    if assignee_id != None:
+        db.execute('insert into assignment values (NULL, ?, ?, ?)', [task_id, 1, assignee_id])
+        db.commit()
     return show_entries()
 
 
@@ -158,6 +155,18 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('username', None)
-    return redirect(url_for('index'))
+    return 'Logout Successful'
 
 app.secret_key = 'my secret key'
+
+
+def get_user_id(username):
+    db = get_db()
+    cur = db.execute('select user_id from user where user_name = ?', [username])
+    row_obj = cur.fetchone()
+
+    if row_obj is None:
+        return None
+    return row_obj[0]
+
+
