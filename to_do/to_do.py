@@ -170,3 +170,14 @@ def get_user_id(username):
     return row_obj[0]
 
 
+@app.route('/chat/<int:task_id>')
+def chat(task_id):
+    db = get_db()
+    cur = db.execute('select message_id, task_id, message_text, sender_id from message where task_id = ? order by message_id asc',[task_id])
+    entries = cur.fetchall()
+    json_dict = {}
+    for entry in entries:
+        for key, value in zip(['message_id', 'task_id', 'message_text', 'sender_id'], entry):
+           json_dict[key] = value
+    return Response(json.dumps(json_dict), mimetype='json/application')
+
