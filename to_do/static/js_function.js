@@ -81,6 +81,28 @@
 
 	
 		}
+	var discussTask = function(task_id){
+		window.location = "/chat"	
+		window.onload = getChat(task_id) 
+
+
+	}
+	var getChat = function(task_id){
+
+		xmlhttp = XHR("/chat/" + task_id, "GET", null);
+	        xmlhttp.onreadystatechange = function () {
+
+			 if (xmlhttp.readyState === 4){
+				 buildChat(JSON.parse(xmlhttp.responseText))
+			}
+	        }
+
+	}
+	
+	buildChat = function(JSONResponse){
+
+		document.write(JSONResponse['message_text'])
+	}
 		
 	buildList = function(JSONResponse){
 		document.getElementById("main_heading").innerHTML = 'ToDo created by : ' +  JSONResponse[JSONResponse.length - 1]
@@ -131,6 +153,14 @@
 						
 					assignButton.innerHTML = 'Assign'
 					node.appendChild(assignButton);
+						// discuss button
+
+					var discussButton = document.createElement('Button'); 
+				discussButton.onclick = function(){
+					discussTask(this.parentElement.id);};
+				
+					discussButton.innerHTML = 'Discuss'
+					node.appendChild(discussButton);
 
 			}
 	}

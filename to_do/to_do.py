@@ -181,3 +181,8 @@ def chat(task_id):
            json_dict[key] = value
     return Response(json.dumps(json_dict), mimetype='json/application')
 
+
+@app.route('/chat')
+def chat_main():
+    return current_app.send_static_file('chat.html')
+
