@@ -1,168 +1,152 @@
-	var XHR = function(action, method, payLoad){
-		var xmlhttp = new XMLHttpRequest();
-		xmlhttp.open(method, action);
-		xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-		xmlhttp.send(JSON.stringify(payLoad));
-		return xmlhttp
-	}
+var XHR = function (action, method, payLoad) {
+  var xmlhttp = new XMLHttpRequest()
+  xmlhttp.open(method, action)
+  xmlhttp.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
+  xmlhttp.send(JSON.stringify(payLoad))
+  return xmlhttp
+}
 
-	var addItem = function(){	
-		var itemToAdd = document.getElementById('newItem').value
+var addItem = function () {
+  var itemToAdd = document.getElementById('newItem').value
 
-		var xmlhttp = XHR("/add", "POST", [itemToAdd, 0]);
+  var xmlhttp = XHR('/add', 'POST', [itemToAdd, 0])
 
-		node = document.createElement("LI");       // adding a copy to the html document
-		textNode = document.createTextNode(itemToAdd)
-		node.appendChild(textNode)
-		document.getElementById('toDoList').appendChild(node);	
-		document.getElementById('newItem').value = ''		// Clear the text in add text box
+  var node = document.createElement('LI')       // adding a copy to the html document
+  var textNode = document.createTextNode(itemToAdd)
+  node.appendChild(textNode)
+  document.getElementById('toDoList').appendChild(node)
+  document.getElementById('newItem').value = '' // Clear the text in add text box
 
-		xmlhttp.onreadystatechange = function () {
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
-				buildList(JSON.parse(xmlhttp.responseText));
-				}
-			}
-		}
-		
-	var deleteTask = function(listItem){
-		var payLoad = listItem.id;
-		
-		var xmlhttp = XHR("/delete", "POST", payLoad);
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      buildList(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
 
-		xmlhttp.onreadystatechange = function() {
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
-				buildList(JSON.parse(xmlhttp.responseText));
-			}
-		}
-	}
+var deleteTask = function (listItem) {
+  var payLoad = listItem.id
 
+  var xmlhttp = XHR('/delete', 'POST', payLoad)
 
-	var assignTask = function(listItem, assignee){
-		var payLoad = [listItem.id, assignee];
-		
-		var xmlhttp = XHR("/assign", "POST", payLoad);
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      buildList(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
 
-		xmlhttp.onreadystatechange = function() {
-			if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
-				buildList(JSON.parse(xmlhttp.responseText));
-			}
-		}
-	}
+var assignTask = function (listItem, assignee) {
+  var payLoad = [listItem.id, assignee]
 
+  var xmlhttp = XHR('/assign', 'POST', payLoad)
 
-	var doUnDo = function(listItem){
-		var taskID = listItem.id
-		var taskDone = 0
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      buildList(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
 
-		if (listItem.style['text-decoration-line'] === 'line-through')
-			taskDone = 1	
-		
-		console.log(taskID,taskDone)
-		var payLoad = [taskID, taskDone];	
-		var xmlhttp = XHR("/done", "POST", payLoad);
+var doUnDo = function (listItem) {
+  var taskID = listItem.id
+  var taskDone = 0
 
-		xmlhttp.onreadystatechange = function () {
-			 if (xmlhttp.readyState == 4 && xmlhttp.status == 200){
-				 buildList(JSON.parse(xmlhttp.responseText));
-			}
-	        }
-	}
+  if (listItem.style['text-decoration-line'] === 'line-through') { taskDone = 1 }
 
-	var syncItem = function(){	
-		
-		xmlhttp = XHR("/sync", "GET", null);
+  console.log(taskID, taskDone)
+  var payLoad = [taskID, taskDone]
+  var xmlhttp = XHR('/done', 'POST', payLoad)
 
-	        xmlhttp.onreadystatechange = function () {
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      buildList(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
 
-			 if (xmlhttp.readyState === 4){
-				 buildList(JSON.parse(xmlhttp.responseText));
-			}
-	        }
+var syncItem = function () {
+  var xmlhttp = XHR('/sync', 'GET', null)
 
-	
-		}
-	var discussTask = function(task_id){
-		window.location = "/chat"	
-		window.onload = getChat(task_id) 
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4) {
+      buildList(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
+var discussTask = function (taskId) {
+  window.location = '/chat'
+  window.onload = getChat(taskId)
+}
+var getChat = function (taskId) {
+  var xmlhttp = XHR('/chat/' + taskId, 'GET', null)
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4) {
+      buildChat(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
 
+var buildChat = function (JSONResponse) {
+  document.write(JSONResponse['message_text'])
+}
 
-	}
-	var getChat = function(task_id){
+var buildList = function (JSONResponse) {
+  document.getElementById('main_heading').innerHTML = 'ToDo created by : ' + JSONResponse[JSONResponse.length - 1]
 
-		xmlhttp = XHR("/chat/" + task_id, "GET", null);
-	        xmlhttp.onreadystatechange = function () {
+  var item_list = document.getElementById('toDoList')
+  while (item_list.firstChild) {
+    item_list.removeChild(item_list.firstChild)
+  }
 
-			 if (xmlhttp.readyState === 4){
-				 buildChat(JSON.parse(xmlhttp.responseText))
-			}
-	        }
+  for (var x = 0; x < JSONResponse.length - 1; x++) {
+    var node = document.createElement('LI')
+    node.id = (JSONResponse[x][0])
 
-	}
-	
-	buildChat = function(JSONResponse){
+    var doneButton = document.createElement('Button') // done button
+    doneButton.onclick = function () {
+      doUnDo(this.parentElement)
+    }
 
-		document.write(JSONResponse['message_text'])
-	}
-		
-	buildList = function(JSONResponse){
-		document.getElementById("main_heading").innerHTML = 'ToDo created by : ' +  JSONResponse[JSONResponse.length - 1]
+    if (JSONResponse[x][2] === 1) {
+      node.style.textDecoration = 'line-through'
+      doneButton.innerHTML = 'un Done'
+    } else { doneButton.innerHTML = 'Done' }
 
-		item_list = document.getElementById("toDoList");		
-			while(item_list.firstChild){
-				item_list.removeChild(item_list.firstChild)	
-			}
+    var textNode = document.createTextNode(JSONResponse[x][1])
 
-			for (var x = 0; x < JSONResponse.length - 1; x++){
-				var node = document.createElement("LI");
-				node.id = ( JSONResponse[x][0] ) 
+    node.appendChild(textNode)
+    node.appendChild(doneButton)
+    document.getElementById('toDoList').appendChild(node)
 
-				var doneButton = document.createElement('Button'); // done button
-				doneButton.onclick = function(){
-					doUnDo(this.parentElement);};
-				
-				if(JSONResponse[x][2] == 1){
+// delete button
+    var deleteButton = document.createElement('Button')
+    deleteButton.onclick = function () {
+      deleteTask(this.parentElement)
+    }
 
-					node.style.textDecoration = 'line-through';
-					doneButton.innerHTML = 'un Done'
-				}
-				else
-					doneButton.innerHTML = 'Done'
+    deleteButton.innerHTML = 'Delete'
+    node.appendChild(deleteButton)
 
-					var textNode = document.createTextNode(JSONResponse[x][1]);
+// build textBox
+    var assigneeTextBox = document.createElement('input')
+    assigneeTextBox.type = 'text'
+    node.appendChild(assigneeTextBox)
 
-					node.appendChild(textNode);
-					node.appendChild(doneButton);
-					document.getElementById('toDoList').appendChild(node);
-									
-									// delete button
-				var deleteButton = document.createElement('Button'); 
-				deleteButton.onclick = function(){
-					deleteTask(this.parentElement);};
-				
-					deleteButton.innerHTML = 'Delete'
-					node.appendChild(deleteButton);
+    var assignButton = document.createElement('Button')
+    assignButton.onclick = function () {
+      assignTask(this.parentElement, this.previousSibling.value)
+    }
 
-						// build textBox
-				var assigneeTextBox = document.createElement('input');
-				assigneeTextBox.type = "text";
-				node.appendChild(assigneeTextBox);
+    assignButton.innerHTML = 'Assign'
+    node.appendChild(assignButton)
+// discuss button
+    var discussButton = document.createElement('Button')
+    discussButton.onclick = function () {
+      discussTask(this.parentElement.id)
+    }
 
-				var assignButton = document.createElement('Button'); 
-				assignButton.onclick = function(){
-					assignTask(this.parentElement, this.previousSibling.value);};
-						
-					assignButton.innerHTML = 'Assign'
-					node.appendChild(assignButton);
-						// discuss button
-
-					var discussButton = document.createElement('Button'); 
-				discussButton.onclick = function(){
-					discussTask(this.parentElement.id);};
-				
-					discussButton.innerHTML = 'Discuss'
-					node.appendChild(discussButton);
-
-			}
-	}
-
-
+    discussButton.innerHTML = 'Discuss'
+    node.appendChild(discussButton)
+  }
+}
