@@ -105,9 +105,10 @@ def assign_task():
     task_id = request.json[0]
     assignee = request.json[1]
     assignee_id = get_user_id(assignee)
+    assigner_id = get_user_id(session['username'])
     db = get_db()
     if assignee_id != None:
-        db.execute('insert into assignment values (NULL, ?, ?, ?)', [task_id, 1, assignee_id])
+        db.execute('insert into assignment values (NULL, ?, ?, ?)', [task_id, assigner_id, assignee_id])
         db.commit()
     return show_entries()
 
@@ -178,7 +179,7 @@ def chat(task_id):
     json_dict = {}
     for entry in entries:
         for key, value in zip(['message_id', 'task_id', 'message_text', 'sender_id'], entry):
-           json_dict[key] = value
+            json_dict[key] = value
     return Response(json.dumps(json_dict), mimetype='json/application')
 
 
