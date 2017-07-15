@@ -1,8 +1,9 @@
 import os
 import sqlite3
-from flask import Flask, request,  g, redirect, url_for,   flash, Response
+from flask import Flask, request, redirect, url_for, flash, Response, g
 from flask import current_app, session
 import json
+from copy import deepcopy
 
 app = Flask(__name__)
 app.config.from_object(__name__)  # loading config from this same file, to_do.py
@@ -170,6 +171,14 @@ def get_user_id(username):
         return None
     return row_obj[0]
 
+def get_username_by_id(user_id):
+    db = get_db()
+    cur = db.execute('select user_name from user where user_id = ?', [user_id])
+    row_obj = cur.fetchone()
+
+    if row_obj is None:
+        return None
+    return row_obj[0]
 
 @app.route('/chat/<int:task_id>')
 def chat(task_id):
@@ -177,13 +186,26 @@ def chat(task_id):
     cur = db.execute('select message_id, task_id, message_text, sender_id from message where task_id = ? order by message_id asc',[task_id])
     entries = cur.fetchall()
     json_dict = {}
+    json_array = []
     for entry in entries:
-        for key, value in zip(['message_id', 'task_id', 'message_text', 'sender_id'], entry):
+        for key, value in zip(['message_id', 'task_id', 'message_text', 'sender_name'], entry):
+            if(key == 'sender_name'):
+                value = get_username_by_id(value)
             json_dict[key] = value
-    return Response(json.dumps(json_dict), mimetype='json/application')
+        json_array.append(deepcopy(json_dict))
+    return Response(json.dumps(json_array), mimetype='json/application')
 
 
 @app.route('/chat')
 def chat_main():
     return current_app.send_static_file('chat.html')
 
+@app.route('/chat/save_chat', methods = ['POST'])
+def save_chat():
+    task_id = request.json['task_id']
+    message_text = request.json['message_text']
+    sender_id = get_user_id(session['username'])
+    db = get_db()
+    db.execute('insert into message values (NULL, ?, ?, ?)', [task_id, message_text, sender_id])
+    db.commit()
+    return Response("Saved")

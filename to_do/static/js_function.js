@@ -1,3 +1,6 @@
+var task_id_chat = 0
+var current_user = ''
+
 var XHR = function (action, method, payLoad) {
   var xmlhttp = new XMLHttpRequest()
   xmlhttp.open(method, action)
@@ -74,9 +77,24 @@ var syncItem = function () {
     }
   }
 }
+
+var sendChat = function() {
+  var message_text = document.getElementById('chat-input').value
+  var payLoad = {'task_id': task_id_chat, 'sender_name': 'current_user', 'message_text': message_text}
+  var xmlhttp = XHR('/chat/save_chat', 'POST', payLoad)
+
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      discussTask(task_id_chat) 
+    }
+  }
+  
+}
+
+
 var discussTask = function (taskId) {
-  window.location = '/chat'
-  window.onload = getChat(taskId)
+  task_id_chat = taskId
+  getChat(taskId)
 }
 var getChat = function (taskId) {
   var xmlhttp = XHR('/chat/' + taskId, 'GET', null)
@@ -88,11 +106,18 @@ var getChat = function (taskId) {
 }
 
 var buildChat = function (JSONResponse) {
-  document.write(JSONResponse['message_text'])
+  chatDisplay = document.getElementById('chat-display')
+  for (var x = 0; x < JSONResponse.length; x++) {
+    textNode = document.createTextNode(JSONResponse[x]['sender_name'] + ':   ' +  JSONResponse[x]['message_text'] + '\r\n') 
+    chatDisplay.appendChild(textNode)
+    chatDisplay.appendChild(document.createElement('br'))
+  }
+  console.log(document.documentURI)
 }
 
 var buildList = function (JSONResponse) {
-  document.getElementById('main_heading').innerHTML = 'ToDo created by : ' + JSONResponse[JSONResponse.length - 1]
+  current_user = JSONResponse[JSONResponse.length - 1]
+  document.getElementById('main_heading').innerHTML = 'ToDo created by : ' + current_user
 
   var item_list = document.getElementById('toDoList')
   while (item_list.firstChild) {

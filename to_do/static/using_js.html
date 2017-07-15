@@ -15,6 +15,15 @@
 	<h2>Add Item</h2>
 	<input type=text size=30 name=item_content id=newItem>
 	<input type=Button value=AddButton name=addButton id=addButton onclick='addItem();'> 
+	
+
+	<div id="chat-window" align=right>
+		<textarea rows='5' column='15' id='chat-display'>
+		</textarea>
+		<br>	
+		<input type=text id='chat-input'>	
+		<input type=Button value='Send' id='chat-send-button' onclick='sendChat();'>
+	</div>
 </body>
 
 </html>
