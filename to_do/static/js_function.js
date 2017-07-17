@@ -1,9 +1,10 @@
 var taskIdChat = 0
 var currentUser = ''
+var recentMessageId = 0
 
 var XHR = function (action, method, payLoad) {
   var xmlhttp = new XMLHttpRequest()
-  xmlhttp.open(method, action)
+  xmlhttp.open(method, action, true)
   xmlhttp.setRequestHeader('Content-Type', 'application/json;charset=UTF-8')
   xmlhttp.send(JSON.stringify(payLoad))
   return xmlhttp
@@ -84,30 +85,34 @@ var sendChat = function() {
   var payLoad = {'task_id': taskIdChat, 'sender_name': 'current_user', 'message_text': message_text}
   var xmlhttp = XHR('/chat/save_chat', 'POST', payLoad)
   message_input_box.value = ''
-  xmlhttp.onreadystatechange = function () {
+/*  xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       discussTask(taskIdChat) 
     }
   }
+  */
   
 }
 
 
 var discussTask = function (taskId) {
   taskIdChat = taskId
-  setInterval(getChat, 2000)
+  getChat()
 }
 var getChat = function () {
   taskId = taskIdChat
-  var xmlhttp = XHR('/chat/' + taskId, 'GET', null)
+  payLoad = { 'task_id' : taskIdChat, 'recent_message_id' : recentMessageId } 
+  var xmlhttp = XHR('/chat/sync', 'POST', payLoad)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4) {
       buildChat(JSON.parse(xmlhttp.responseText))
+      setTimeout(getChat, 0) // polling
     }
   }
 }
 
 var buildChat = function (JSONResponse) {
+  recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id']
   chatDisplay = document.getElementById('chat-display')
   chatDisplay.scrollTop = chatDisplay.scrollHeight;
   chatDisplay.innerHTML = ''

@@ -4,6 +4,8 @@ from flask import Flask, request, redirect, url_for, flash, Response, g
 from flask import current_app, session
 import json
 from copy import deepcopy
+import time
+
 
 app = Flask(__name__)
 app.config.from_object(__name__)  # loading config from this same file, to_do.py
@@ -180,8 +182,24 @@ def get_username_by_id(user_id):
         return None
     return row_obj[0]
 
-@app.route('/chat/<int:task_id>')
-def chat(task_id):
+@app.route('/chat/sync', methods = ['POST'])
+def chat():
+    task_id = request.json['task_id']
+    if request.json['recent_message_id'] == 0:
+        return get_all_messages_using_task_id(task_id)
+
+    while True:
+        time.sleep(0.5)
+        db = get_db()
+        cur = db.execute('select message_id from message where task_id = ? order by message_id desc limit 1',[task_id])
+        latest_message_id_from_db = cur.fetchone()[0]
+        if latest_message_id_from_db > request.json['recent_message_id']:
+            return get_all_messages_using_task_id(task_id)
+
+
+
+
+def get_all_messages_using_task_id(task_id):
     db = get_db()
     cur = db.execute('select message_id, task_id, message_text, sender_id from message where task_id = ? order by message_id asc',[task_id])
     entries = cur.fetchall()
@@ -196,6 +214,9 @@ def chat(task_id):
     return Response(json.dumps(json_array), mimetype='json/application')
 
 
+
+
+
 @app.route('/chat')
 def chat_main():
     return current_app.send_static_file('chat.html')
@@ -208,4 +229,5 @@ def save_chat():
     db = get_db()
     db.execute('insert into message values (NULL, ?, ?, ?)', [task_id, message_text, sender_id])
     db.commit()
+
     return Response("Saved")
