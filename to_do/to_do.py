@@ -5,6 +5,7 @@ from flask import current_app, session
 import json
 from copy import deepcopy
 import time
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
@@ -127,14 +128,35 @@ def index():
         return 'Logged in as %s' % session['username']
     return 'You are not logged in'
 
+@app.route('/signup', methods = ['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        db = get_db()
+        hashed_password = generate_password_hash(request.form['password'])
+        db.execute('insert into user values (NULL, ?, ?)', [request.form['username'], hashed_password])
+        db.commit()
+
+        return 'Signup successful'
+
+    return ''' <form method="post">
+            <p><input type=text name=username>
+            <p><input type=password name=password>
+            <p><input type=submit value=Login>
+        </form>
+    '''
+
+
+
 
 def check_credentials(username, password):
     db = get_db()
-    cur = db.execute('select 1 from user where user_name = ? and user_password = ?', [username, password])
+    cur = db.execute('select user_password from user where user_name = ?', [username])
 
-    if cur.fetchone():
-        return True
-    return False
+#    if cur.fetchone():
+#        return True
+#    return False
+
+    return check_password_hash(cur.fetchone()[0], password)
 
 
 @app.route('/login', methods=['GET', 'POST'])
