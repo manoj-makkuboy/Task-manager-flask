@@ -1,5 +1,5 @@
-var task_id_chat = 0
-var current_user = ''
+var taskIdChat = 0
+var currentUser = ''
 
 var XHR = function (action, method, payLoad) {
   var xmlhttp = new XMLHttpRequest()
@@ -79,13 +79,14 @@ var syncItem = function () {
 }
 
 var sendChat = function() {
-  var message_text = document.getElementById('chat-input').value
-  var payLoad = {'task_id': task_id_chat, 'sender_name': 'current_user', 'message_text': message_text}
+  var message_input_box = document.getElementById('chat-input')
+  var message_text = message_input_box.value
+  var payLoad = {'task_id': taskIdChat, 'sender_name': 'current_user', 'message_text': message_text}
   var xmlhttp = XHR('/chat/save_chat', 'POST', payLoad)
-
+  message_input_box.value = ''
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-      discussTask(task_id_chat) 
+      discussTask(taskIdChat) 
     }
   }
   
@@ -93,10 +94,11 @@ var sendChat = function() {
 
 
 var discussTask = function (taskId) {
-  task_id_chat = taskId
-  getChat(taskId)
+  taskIdChat = taskId
+  setInterval(getChat, 2000)
 }
-var getChat = function (taskId) {
+var getChat = function () {
+  taskId = taskIdChat
   var xmlhttp = XHR('/chat/' + taskId, 'GET', null)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4) {
@@ -107,6 +109,8 @@ var getChat = function (taskId) {
 
 var buildChat = function (JSONResponse) {
   chatDisplay = document.getElementById('chat-display')
+  chatDisplay.scrollTop = chatDisplay.scrollHeight;
+  chatDisplay.innerHTML = ''
   for (var x = 0; x < JSONResponse.length; x++) {
     textNode = document.createTextNode(JSONResponse[x]['sender_name'] + ':   ' +  JSONResponse[x]['message_text'] + '\r\n') 
     chatDisplay.appendChild(textNode)
@@ -116,8 +120,8 @@ var buildChat = function (JSONResponse) {
 }
 
 var buildList = function (JSONResponse) {
-  current_user = JSONResponse[JSONResponse.length - 1]
-  document.getElementById('main_heading').innerHTML = 'ToDo created by : ' + current_user
+  currentUser = JSONResponse[JSONResponse.length - 1]
+  document.getElementById('main_heading').innerHTML = 'ToDo created by : ' + currentUser
 
   var item_list = document.getElementById('toDoList')
   while (item_list.firstChild) {
