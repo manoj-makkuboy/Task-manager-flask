@@ -104,9 +104,10 @@ var getChat = function () {
   payLoad = { 'task_id' : taskIdChat, 'recent_message_id' : recentMessageId } 
   var xmlhttp = XHR('/chat/sync', 'POST', payLoad)
   xmlhttp.onreadystatechange = function () {
-    if (xmlhttp.readyState === 4) {
+    if (xmlhttp.readyState === 4 && xmlhttp.status == 200) {
+      console.log(xmlhttp)
       buildChat(JSON.parse(xmlhttp.responseText))
-      setTimeout(getChat, 0) // polling
+      getChat()// polling
     }
   }
 }

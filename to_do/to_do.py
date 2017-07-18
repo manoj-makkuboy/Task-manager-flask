@@ -9,8 +9,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
+#app.run(port=0, threaded=True)
 app.config.from_object(__name__)  # loading config from this same file, to_do.py
-
 # Load default config and override config from an environment variable
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'to_do.db'),
@@ -19,7 +19,6 @@ app.config.update(dict(
     PASSWORD='default'
 ))
 app.config.from_envvar('TODO_SETTINGS', silent=True)
-
 
 def get_db():
     """Opens a new db connection is if its not present in the current
@@ -253,3 +252,7 @@ def save_chat():
     db.commit()
 
     return Response("Saved")
+
+if __name__ == "__main__":
+    app.run(port=7000, threaded=True)
+
