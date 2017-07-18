@@ -66,6 +66,15 @@ def show_entries():
     json_array.append(session['username'])
     return Response(json.dumps(json_array), mimetype='json/application')
 
+@app.route('/assigned_to', methods=['GET'])
+def tasks_assigned_to():
+    db = get_db()
+    cur = db.execute('select task_id, task_name, is_done from task where task_id in (select task_id from assignment where assignee_id = ?) order by task_id asc',[get_user_id(session['username'])])
+    entries = cur.fetchall()
+    json_array = []
+    for entry in entries:
+        json_array.append([x for x in entry])
+    return Response(json.dumps(json_array), mimetype='json/application')
 
 @app.route('/add', methods=['POST'])
 def add_entry():
@@ -216,8 +225,6 @@ def chat():
         latest_message_id_from_db = cur.fetchone()[0]
         if latest_message_id_from_db > request.json['recent_message_id']:
             return get_all_messages_using_task_id(task_id)
-
-
 
 
 def get_all_messages_using_task_id(task_id):
