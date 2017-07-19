@@ -55,6 +55,13 @@ def initdb_command():
     print('Initialized the database.')
 
 
+@app.route('/get_current_username', methods=['GET'])
+def get_current_username():
+    response = {}
+    response['username'] = session['username']
+    return Response(json.dumps(response), mimetype='application/json')
+
+
 @app.route('/sync', methods=['GET'])
 def show_entries():
     db = get_db()
@@ -63,7 +70,6 @@ def show_entries():
     json_array = []
     for entry in entries:
         json_array.append([x for x in entry])
-    json_array.append(session['username'])
     return Response(json.dumps(json_array), mimetype='json/application')
 
 @app.route('/assigned_to', methods=['GET'])
