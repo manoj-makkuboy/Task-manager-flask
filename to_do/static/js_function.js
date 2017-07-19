@@ -10,23 +10,18 @@ getCurrentUser = function () {
   var xmlhttp = XHR('/get_current_username', 'GET', null)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-      console.log(JSON.parse(xmlhttp.responseText))
-      JSONResponse = (JSON.parse(xmlhttp.responseText))
-      currentUser = JSONResponse['username']
+      currentUser = (JSON.parse(xmlhttp.responseText))['username']
     }
-
   }
 }
-var taskIdChat = 0
 
+var taskIdChat = 0
 var currentUser = getCurrentUser()
 var recentMessageId = 0
 
 var addItem = function () {
   var itemToAdd = document.getElementById('newItem').value
-
   var xmlhttp = XHR('/add', 'POST', [itemToAdd, 0])
-
   var node = document.createElement('LI')       // adding a copy to the html document
   var textNode = document.createTextNode(itemToAdd)
   node.appendChild(textNode)
@@ -42,9 +37,7 @@ var addItem = function () {
 
 var deleteTask = function (listItem) {
   var payLoad = listItem.id
-
   var xmlhttp = XHR('/delete', 'POST', payLoad)
-
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       buildList(JSON.parse(xmlhttp.responseText))
@@ -54,9 +47,7 @@ var deleteTask = function (listItem) {
 
 var assignTask = function (listItem, assignee) {
   var payLoad = [listItem.id, assignee]
-
   var xmlhttp = XHR('/assign', 'POST', payLoad)
-
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       buildList(JSON.parse(xmlhttp.responseText))
@@ -67,13 +58,9 @@ var assignTask = function (listItem, assignee) {
 var doUnDo = function (listItem) {
   var taskID = listItem.id
   var taskDone = 0
-
   if (listItem.style['text-decoration-line'] === 'line-through') { taskDone = 1 }
-
-  console.log(taskID, taskDone)
   var payLoad = [taskID, taskDone]
   var xmlhttp = XHR('/done', 'POST', payLoad)
-
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       buildList(JSON.parse(xmlhttp.responseText))
@@ -83,9 +70,8 @@ var doUnDo = function (listItem) {
 
 var syncItem = function () {
   var xmlhttp = XHR('/sync', 'GET', null)
-
   xmlhttp.onreadystatechange = function () {
-    if (xmlhttp.readyState === 4) {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       buildList(JSON.parse(xmlhttp.responseText))
     }
   }
@@ -97,22 +83,20 @@ var sendChat = function() {
   var payLoad = {'task_id': taskIdChat, 'sender_name': 'current_user', 'message_text': message_text}
   var xmlhttp = XHR('/chat/save_chat', 'POST', payLoad)
   message_input_box.value = ''
-
-  
 }
 
 
-var discussTask = function (taskId) {
-  taskIdChat = taskId
+var discussTask = function (taskId) { // method trigged when discuss method is clicked
+  taskIdChat = taskId // updating global taskIdChat based on the click 
   getChat()
 }
+
+
 var getChat = function () {
-  taskId = taskIdChat
   payLoad = { 'task_id' : taskIdChat, 'recent_message_id' : recentMessageId } 
   var xmlhttp = XHR('/chat/sync', 'POST', payLoad)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status == 200) {
-      console.log(xmlhttp)
       buildChat(JSON.parse(xmlhttp.responseText))
       getChat()// polling
     }
@@ -120,7 +104,7 @@ var getChat = function () {
 }
 
 var buildChat = function (JSONResponse) {
-  recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id']
+  recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id'] //tacking the recent message ID from recent response
   chatDisplay = document.getElementById('chat-display')
   chatDisplay.scrollTop = chatDisplay.scrollHeight;
   chatDisplay.innerHTML = ''
@@ -129,12 +113,45 @@ var buildChat = function (JSONResponse) {
     chatDisplay.appendChild(textNode)
     chatDisplay.appendChild(document.createElement('br'))
   }
-  console.log(document.documentURI)
+}
+
+var createDeleteButton = function(){
+    var deleteButton = document.createElement('Button')
+    deleteButton.onclick = function () {
+      deleteTask(this.parentElement)
+    }
+    deleteButton.innerHTML = 'Delete'
+    return deleteButton
+}
+
+var createAssigneeTextBox = function(){
+    var assigneeTextBox = document.createElement('input')
+    assigneeTextBox.type = 'text'
+    return assigneeTextBox
+    
+}
+
+var createAssigneeButton = function(){
+  var assignButton = document.createElement('Button')
+  assignButton.onclick = function () {
+    assignTask(this.parentElement, this.previousSibling.value)
+  }
+  assignButton.innerHTML = 'Assign'
+  return assignButton
+}
+
+var createDiscussButton = function() {
+    var discussButton = document.createElement('Button')
+    discussButton.onclick = function () {
+      discussTask(this.parentElement.id)
+    }
+
+    discussButton.innerHTML = 'Discuss'
+    return discussButton
 }
 
 var buildList = function (JSONResponse) {
   document.getElementById('main_heading').innerHTML = 'ToDo created by : ' + currentUser
-
   var item_list = document.getElementById('toDoList')
   while (item_list.firstChild) {
     item_list.removeChild(item_list.firstChild)
@@ -155,39 +172,16 @@ var buildList = function (JSONResponse) {
     } else { doneButton.innerHTML = 'Done' }
 
     var textNode = document.createTextNode(JSONResponse[x][1])
-
     node.appendChild(textNode)
     node.appendChild(doneButton)
     document.getElementById('toDoList').appendChild(node)
 
 // delete button
-    var deleteButton = document.createElement('Button')
-    deleteButton.onclick = function () {
-      deleteTask(this.parentElement)
-    }
-
-    deleteButton.innerHTML = 'Delete'
-    node.appendChild(deleteButton)
-
-// build textBox
-    var assigneeTextBox = document.createElement('input')
-    assigneeTextBox.type = 'text'
-    node.appendChild(assigneeTextBox)
-
-    var assignButton = document.createElement('Button')
-    assignButton.onclick = function () {
-      assignTask(this.parentElement, this.previousSibling.value)
-    }
-
-    assignButton.innerHTML = 'Assign'
-    node.appendChild(assignButton)
+    node.appendChild(createDeleteButton())
+// create assignee textBox and assignee button
+    node.appendChild(createAssigneeTextBox())
+    node.appendChild(createAssigneeButton())
 // discuss button
-    var discussButton = document.createElement('Button')
-    discussButton.onclick = function () {
-      discussTask(this.parentElement.id)
-    }
-
-    discussButton.innerHTML = 'Discuss'
-    node.appendChild(discussButton)
+    node.appendChild(createDiscussButton())
   }
 }
