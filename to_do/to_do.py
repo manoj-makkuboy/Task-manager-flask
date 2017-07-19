@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from flask import Flask, request, redirect, url_for, flash, Response, g
+from flask import Flask, request, redirect, url_for, Response, g
 from flask import current_app, session
 import json
 from copy import deepcopy
@@ -9,7 +9,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
-#app.run(port=0, threaded=True)
 app.config.from_object(__name__)  # loading config from this same file, to_do.py
 # Load default config and override config from an environment variable
 app.config.update(dict(
@@ -79,7 +78,10 @@ def update_status():
     is_done = 1 - is_done
     db.execute('update task set is_done = ? where task_id=?', [is_done, task_id])
     db.commit()
-    return show_entries()   # sends Response() the entire JSON from serverside
+    created_tasks = json.loads(show_entries().data.decode("utf-8"))
+    assigned_tasks = json.loads(tasks_assigned_to().data.decode("utf-8"))
+    to_return = {'created_tasks': created_tasks, 'assigned_tasks': assigned_tasks}
+    return Response(json.dumps(to_return), mimetype='json/application')
 
 
 @app.route('/delete', methods = ['POST'])
@@ -188,12 +190,15 @@ def get_username_by_id(user_id):
 def chat():
     if request.json['recent_message_id'] == 0:
         return get_all_messages_using_task_id(request.json['task_id'])
-
+    latest_message_id_from_db = 0
     while True:
         time.sleep(0.5)
         db = get_db()
         cur = db.execute('select message_id from message where task_id = ? order by message_id desc limit 1',[request.json['task_id']])
-        latest_message_id_from_db = cur.fetchone()[0]
+        db_row = cur.fetchone()
+        if db_row is not None:
+            latest_message_id_from_db = db_row[0]
+
         if latest_message_id_from_db > request.json['recent_message_id']:
             return get_all_messages_using_task_id(request.json['task_id'])
 

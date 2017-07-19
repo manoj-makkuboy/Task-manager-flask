@@ -63,16 +63,33 @@ var doUnDo = function (listItem) {
   var xmlhttp = XHR('/done', 'POST', payLoad)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-      buildList(JSON.parse(xmlhttp.responseText))
+      parsed_json = JSON.parse(xmlhttp.responseText)
+
+      buildList(parsed_json['created_tasks'])
+      buildListAssignedTask(parsed_json['assigned_tasks'])
     }
   }
 }
 
 var syncItem = function () {
+ syncAssignedTasks()
+ syncCreatedTasks()
+  
+}
+
+var syncAssignedTasks = function(){
   var xmlhttp = XHR('/sync', 'GET', null)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
       buildList(JSON.parse(xmlhttp.responseText))
+    }
+  }
+}
+var syncCreatedTasks = function(){
+  var xmlhttp = XHR('/assigned_to', 'GET', null)
+  xmlhttp.onreadystatechange = function () {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      buildListAssignedTask(JSON.parse(xmlhttp.responseText))
     }
   }
 }
@@ -148,6 +165,72 @@ var createDiscussButton = function() {
 
     discussButton.innerHTML = 'Discuss'
     return discussButton
+}
+
+var buildListAssignedTask = function (JSONResponse) {
+  document.getElementById('task-assigned-heading').innerHTML = 'tasks assigned to: ' + currentUser
+  var item_list = document.getElementById('task-assigned-list')
+  while (item_list.firstChild) {
+    item_list.removeChild(item_list.firstChild)
+  }
+
+  for (var x = 0; x < JSONResponse.length; x++) {
+    var node = document.createElement('LI')
+    node.id = (JSONResponse[x][0])
+
+    var doneButton = document.createElement('Button') // done button
+    doneButton.onclick = function () {
+      doUnDo(this.parentElement)
+    }
+
+    if (JSONResponse[x][2] === 1) {
+      node.style.textDecoration = 'line-through'
+      doneButton.innerHTML = 'un Done'
+    } else { doneButton.innerHTML = 'Done' }
+
+    var textNode = document.createTextNode(JSONResponse[x][1])
+    node.appendChild(textNode)
+    node.appendChild(doneButton)
+    document.getElementById('task-assigned-list').appendChild(node)
+
+// delete button
+//    node.appendChild(createDeleteButton())
+// create assignee textBox and assignee button
+//   node.appendChild(createAssigneeTextBox())
+//    node.appendChild(createAssigneeButton())
+// discuss button
+    node.appendChild(createDiscussButton())
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 var buildList = function (JSONResponse) {
