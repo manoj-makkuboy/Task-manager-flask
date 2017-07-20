@@ -3,24 +3,23 @@
 </script>
 
 <body onload='syncItem()'>
-	<a href='/logout'>Logout</a>
-<h2 id='main_heading'> To do items</h2>
-<UL id=toDoList >
+	<div id="header">
+		<a href='/logout'>Logout</a>
+	</div>
+
+	<div id="task-created" style="float:left; border:1px solid black;">
+		<h2 id='main_heading'> To do items</h2>
+		<UL id=toDoList >
+		</UL>
 
 
-
-</UL>
-
-
-	<h2>Add Item</h2>
-	<input type=text size=30 name=item_content id=newItem>
-	<input type=Button value=AddButton name=addButton id=addButton onclick='addItem();'> 
-	<div id="task-assigned">
+		<h2>Add Item</h2>
+		<input type=text size=30 name=item_content id=newItem>
+		<input type=Button value=AddButton name=addButton id=addButton onclick='addItem();'> 
+	</div>
+	<div id="task-assigned" style="float:right;">
 		<h2 id='task-assigned-heading'> To do items</h2>
 			<UL id='task-assigned-list'>
-
-
-
 			</UL>	
 	</div>	
 

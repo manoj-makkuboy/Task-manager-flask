@@ -106,6 +106,7 @@ var sendChat = function() {
 
 var discussTask = function (taskId) { // method trigged when discuss method is clicked
   taskIdChat = taskId // updating global taskIdChat based on the click 
+  recentMessageId = 0
   getChat()
 }
 
@@ -115,14 +116,21 @@ var getChat = function () {
   var xmlhttp = XHR('/chat/sync', 'POST', payLoad)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status == 200) {
-      buildChat(JSON.parse(xmlhttp.responseText))
-      getChat()// polling
+      JSONResponse = JSON.parse(xmlhttp.responseText)
+      console.log(JSONResponse)
+      if (JSONResponse.length !== 0 ){
+	buildChat(JSONResponse)
+	getChat()// polling
+      }
+      else { alert ("No chat found for the task") }
+      
     }
   }
 }
 
 var buildChat = function (JSONResponse) {
-  recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id'] //tacking the recent message ID from recent response
+	recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id'] //tacking the recent message ID from recent response
+  
   chatDisplay = document.getElementById('chat-display')
   chatDisplay.scrollTop = chatDisplay.scrollHeight;
   chatDisplay.innerHTML = ''
