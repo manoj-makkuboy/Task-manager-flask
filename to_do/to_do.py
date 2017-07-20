@@ -98,12 +98,14 @@ def assign_task():
     task_id = request.json[0]
     assignee = request.json[1]
     assignee_id = get_user_id(assignee)
+    if assignee_id is None:
+        return Response(json.dumps({'alert': 'User name doesn\'t exists'}))
     assigner_id = get_user_id(session['username'])
     db = get_db()
     if assignee_id is not None:
         db.execute('insert into assignment values (NULL, ?, ?, ?)', [task_id, assigner_id, assignee_id])
         db.commit()
-    return show_entries()
+    return Response(json.dumps({'alert': 'save successful'}))
 
 
 @app.route('/task')

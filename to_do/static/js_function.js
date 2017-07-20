@@ -50,7 +50,8 @@ var assignTask = function (listItem, assignee) {
   var xmlhttp = XHR('/assign', 'POST', payLoad)
   xmlhttp.onreadystatechange = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-      buildList(JSON.parse(xmlhttp.responseText))
+      JSONResponse = JSON.parse(xmlhttp.responseText)
+      alert(JSONResponse['alert'])
     }
   }
 }
