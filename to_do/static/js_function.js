@@ -118,19 +118,17 @@ var getChat = function () {
     if (xmlhttp.readyState === 4 && xmlhttp.status == 200) {
       JSONResponse = JSON.parse(xmlhttp.responseText)
       console.log(JSONResponse)
-      if (JSONResponse.length !== 0 ){
-	buildChat(JSONResponse)
-	getChat()// polling
-      }
-      else { alert ("No chat found for the task") }
-      
+      buildChat(JSONResponse)
+      getChat()// polling
+	    
     }
   }
 }
 
 var buildChat = function (JSONResponse) {
-	recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id'] //tacking the recent message ID from recent response
-  
+	if (JSONResponse.length !== 0) {
+		recentMessageId = JSONResponse[JSONResponse.length - 1]['message_id'] //tacking the recent message ID from recent response
+	} 
   chatDisplay = document.getElementById('chat-display')
   chatDisplay.scrollTop = chatDisplay.scrollHeight;
   chatDisplay.innerHTML = ''

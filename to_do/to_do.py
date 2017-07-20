@@ -190,8 +190,8 @@ def get_username_by_id(user_id):
 
 @app.route('/chat/sync', methods=['POST'])
 def chat():
-    if request.json['recent_message_id'] == 0:
-        return get_all_messages_using_task_id(request.json['task_id'])
+#    if request.json['recent_message_id'] == 0:
+#        return get_all_messages_using_task_id(request.json['task_id'])
     latest_message_id_from_db = 0
     while True:
         time.sleep(0.5)
