@@ -199,45 +199,8 @@ var buildListAssignedTask = function (JSONResponse) {
     node.appendChild(textNode)
     node.appendChild(doneButton)
     document.getElementById('task-assigned-list').appendChild(node)
-
-// delete button
-//    node.appendChild(createDeleteButton())
-// create assignee textBox and assignee button
-//   node.appendChild(createAssigneeTextBox())
-//    node.appendChild(createAssigneeButton())
-// discuss button
     node.appendChild(createDiscussButton())
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 var buildList = function (JSONResponse) {
