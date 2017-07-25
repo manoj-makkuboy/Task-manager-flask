@@ -7,7 +7,7 @@ from copy import deepcopy
 import time
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
+recent_message_id_for_task = {}
 app = Flask(__name__)
 app.config.from_object(__name__)  # loading config from this same file, to_do.py
 # Load default config and override config from an environment variable
@@ -65,7 +65,10 @@ def tasks_assigned_to():
 @app.route('/add', methods=['POST'])
 def add_entry():
     db = get_db()
-    db.execute('insert into task (task_name, is_done, task_creator) values (?, ?, ?)', [request.json[0], request.json[1], session['username']])
+    cur = db.cursor()
+    cur.execute('insert into task (task_name, is_done, task_creator) values (?, ?, ?)', [request.json[0], request.json[1], session['username']])
+    last_id =  cur.lastrowid
+    recent_message_id_for_task[int(last_id)] = 0
     db.commit()
     return redirect(url_for('show_entries'))
 
@@ -190,11 +193,17 @@ def get_username_by_id(user_id):
 
 @app.route('/chat/sync', methods=['POST'])
 def chat():
-#    if request.json['recent_message_id'] == 0:
-#        return get_all_messages_using_task_id(request.json['task_id'])
+    ''' long polling method '''
     latest_message_id_from_db = 0
+
+    request_task_id = int(request.json['task_id'])
+    request_message_id = request.json['recent_message_id']
+
     while True:
-        time.sleep(0.5)
+        if request_message_id == recent_message_id_for_task[request_task_id]:
+            time.sleep(.5)
+            continue
+
         db = get_db()
         cur = db.execute('select message_id from message where task_id = ? order by message_id desc limit 1',[request.json['task_id']])
         db_row = cur.fetchone()
@@ -231,7 +240,9 @@ def save_chat():
     message_text = request.json['message_text']
     sender_id = get_user_id(session['username'])
     db = get_db()
-    db.execute('insert into message values (NULL, ?, ?, ?)', [task_id, message_text, sender_id])
+    cur = db.cursor()
+    cur.execute('insert into message values (NULL, ?, ?, ?)', [task_id, message_text, sender_id])
+    recent_message_id_for_task[int(task_id)] = cur.lastrowid
     db.commit()
     return Response("Saved")
 
